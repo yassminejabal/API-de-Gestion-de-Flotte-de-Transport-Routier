@@ -1,4 +1,6 @@
 const trajetService = require('../services/TrajetService');
+const Trajet = require('../models/TrajetModel');
+const pdfService = require('../services/PdfService');
 class TrajetController{
     async creerTrajet(req, res, next) {
     try {
@@ -72,7 +74,7 @@ async terminerTrajet(req, res, next) {
       req.user._id,
       req.body
     );
-    
+
     res.status(200).json({
       status: "success",
       message: "Trajet terminé avec succès",
@@ -82,6 +84,128 @@ async terminerTrajet(req, res, next) {
     next(error);
   }
 }
+
+
+ async genererOrdreMission(req, res, next) {
+        try {
+            const trajet = await Trajet.findOne({ _id: req.params.id, estArchive: false })
+                .populate('chauffeur', 'nom prenom email')
+                .populate('camion', 'immatriculation marque modele')
+                .populate('remorque', 'immatriculation type');
+
+            if (!trajet) {
+                return res.status(404).json({
+                    message: 'Trajet introuvable'
+                });
+            }
+
+            const chunks = [];
+
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', `attachment; filename="ordre-mission-${trajet._id}.pdf"`);
+            pdfService.genererOrdreMission(
+                trajet,
+                data => chunks.push(data),
+                () => res.send(Buffer.concat(chunks))
+            );
+
+        } catch (error) {
+            next(error);
+        }
+    }
+
 }
 
 module.exports = new TrajetController();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

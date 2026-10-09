@@ -14,6 +14,8 @@ class PneuService{
     const pneu = await Pneu.create(data);
     return pneu;
   }
+
+
   async recupererTousLesPneus() {
     const query = { estArchive: false };
     return await Pneu.find(query).populate("camion", "immatriculation marque modele");
@@ -24,7 +26,7 @@ class PneuService{
   async assignerPneuACamion(pneuId, camionId, position) {
     if (!camionId || !position) {
       throw new BadRequestError("L'identifiant du camion et la position sont obligatoires");
-    } 
+    }
     const pneu = await Pneu.findOne({ _id: pneuId, estArchive: false });
     if (!pneu) {
       throw new NotFoundError("Pneu introuvable ou déjà archivé");

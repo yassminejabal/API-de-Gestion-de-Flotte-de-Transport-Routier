@@ -27,5 +27,7 @@ router.patch("/:id/demarrer", (req, res, next) =>
 router.patch("/:id/terminer", (req, res, next) =>
   trajetController.terminerTrajet(req, res, next)
 );
-
+router.get('/:id/ordre-mission', protect, (req, res, next) =>
+  trajetController.genererOrdreMission(req, res, next)
+);
 module.exports = router;

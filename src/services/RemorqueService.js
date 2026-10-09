@@ -41,5 +41,4 @@ class RemorqueService{
     return remorque;
   }
 }
-
 module.exports = new RemorqueService();

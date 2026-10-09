@@ -16,6 +16,7 @@
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.10.2",
     "nodemailer": "^10.0.13",
+    "pdfkit": "^0.20.2",
     "randombytes": "^2.1.0"
   }
 }

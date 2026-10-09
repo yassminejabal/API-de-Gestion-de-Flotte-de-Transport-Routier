@@ -10,7 +10,7 @@ const pneuSchema = new mongoose.Schema(
     },
     position: {
       type: String,
-      position : null   
+      position: null,
     },
     kilometrageActuel: {
       type: Number,
@@ -31,12 +31,13 @@ const pneuSchema = new mongoose.Schema(
       ref: "Camion",
       default: null,
     },
+
     estArchive: {
       type: Boolean,
       default: false,
-    }
+    },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 module.exports = mongoose.model("Pneu", pneuSchema);
