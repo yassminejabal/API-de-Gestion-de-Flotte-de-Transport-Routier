@@ -34,14 +34,19 @@ class CamionService {
 
 
 
-  async modifierCamion(id, data) {
-      const camion = await Camion.findByIdAndUpdate(id, data);
-      if (!camion) {
-      throw new NotFoundError ('Camion introuvable');
-      }
-      return camion;
-    
+async modifierCamion(id, data) {
+  const camion = await Camion.findByIdAndUpdate(
+    id, 
+    data, 
+    { new: true, runValidators: true }
+  );  
+
+  if (!camion) {
+    throw new NotFoundError('Camion introuvable');
   }
+
+  return camion;
+}
 
 
 

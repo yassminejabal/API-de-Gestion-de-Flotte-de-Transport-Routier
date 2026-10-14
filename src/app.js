@@ -20,7 +20,7 @@ app.use("/api/pneus", pneuRoutes);
 app.use("/api/trajets", trajetRoutes);
 app.use("/api/chauffeurs", chauffeurRoutes);
 app.use('/api/maintenance', maintenanceRoutes);
-app.use(errorHandler);
+app.use(errorHandler);  
 
 
 module.exports = app;

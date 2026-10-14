@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
   },
   "keywords": [],
   "author": "",
@@ -18,5 +18,8 @@
     "nodemailer": "^10.0.13",
     "pdfkit": "^0.20.2",
     "randombytes": "^2.1.0"
+  },
+  "devDependencies": {
+    "jest": "^30.5.2"
   }
 }

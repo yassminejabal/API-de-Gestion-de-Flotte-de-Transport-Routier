@@ -7,5 +7,4 @@ function errorHandler(err , req , res,next) {
     message: message
   });
 }
-
 module.exports = errorHandler;

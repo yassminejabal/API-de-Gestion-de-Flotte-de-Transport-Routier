@@ -183,7 +183,7 @@
 
       if (trajet.chauffeur.toString() !== chauffeurId.toString()) {
         throw new BadRequestError("Vous n'êtes pas assigné à ce trajet");
-      }
+      }                  
 
       if (trajet.statut !== "EN_COURS") {
         throw new BadRequestError(

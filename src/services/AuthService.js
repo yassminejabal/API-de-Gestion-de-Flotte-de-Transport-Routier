@@ -57,7 +57,7 @@ class AuthService {
     }
 
 const token = this.genererToken(user._id);
-    user.password = undefined;
+      user.password = undefined;
 
     return { user, token };
     }
