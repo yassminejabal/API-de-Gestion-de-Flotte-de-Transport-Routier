@@ -70,7 +70,27 @@ const trajetSchema = new mongoose.Schema({
       type: Boolean,
       default: false,
     },
+  // Stockage MinIO (Ordres de Mission)
+    missionOrderDocument: {
+      bucket: {
+        type: String,
+        default: 'fleettrack-documents',
+      },
+      s3Key: {
+        type: String,
+        default: null,
+      },
+      sizeBytes: {
+        type: Number,
+        default: 0,
+      },
+      generatedAt: {
+        type: Date,
+        default: null,
+      },
+    },
   },
   { timestamps: true }
+  
 );
 module.exports = mongoose.model("Trajet", trajetSchema);
