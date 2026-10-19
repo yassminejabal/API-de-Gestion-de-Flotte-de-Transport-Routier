@@ -9,7 +9,7 @@ const sendEmail = async (options) => {
     },
   });
 
-
+  
   const mailOptions = {
     from: `"Gestion de Flotte" <${process.env.EMAIL_USER}>`,
     to: options.email,

@@ -15,7 +15,7 @@ class PneuService{
     return pneu;
   }
 
-
+  
   async recupererTousLesPneus() {
     const query = { estArchive: false };
     return await Pneu.find(query).populate("camion", "immatriculation marque modele");

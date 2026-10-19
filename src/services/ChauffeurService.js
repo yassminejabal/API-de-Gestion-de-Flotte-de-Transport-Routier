@@ -5,7 +5,6 @@ const crypto = require("crypto");
 class ChauffeurService {
   async creerChauffeur(data) {
     const { nom, prenom, email, telephone } = data;
-
     const userExistant = await User.findOne({ email });
     if (userExistant) {
       throw new ConflictError("Un utilisateur avec cet email existe déjà");
@@ -15,7 +14,6 @@ class ChauffeurService {
     // toString("hex") = > "a3 7f 12 c9"
     // + "A1!" => "a3 7f 12 c9A1!"
     const motDePasseTemporaire = crypto.randomBytes(4).toString("hex") + "A1!";
-
     const chauffeur = await User.create({
       nom,
       prenom,
@@ -26,7 +24,6 @@ class ChauffeurService {
       estSuspendu: false,
       estArchive: false,
     });
-
     const messageHtml = `
       <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
         <h2>Bienvenue sur l'application de Gestion de Flotte</h2>
