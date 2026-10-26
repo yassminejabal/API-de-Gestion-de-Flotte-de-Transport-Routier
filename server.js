@@ -1,6 +1,7 @@
 const dotenv = require('dotenv');
 const mongoose = require("mongoose");
 const app = require("./src/app");
+const { authLimiter } = require('./src/middlewares/rateLimiter');
 // pour les vairaible de .env
 dotenv.config();
 require("./src/config/Database");
@@ -20,5 +21,7 @@ app.listen(PORT,()=>{
 // xahina 6abc67f22babf235551afc6b
 
 
-
+// Appliquer ghir 3la les routes dyal auth
+app.use('/api/v1/auth', authLimiter);
+app.use('/api/v2/auth', authLimiter);
 // pnu 6abdb83c7b834e396ec282ea

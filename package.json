@@ -2,10 +2,11 @@
   "name": "gestion_de_flotte_de_transport_routier",
   "version": "2.0.0",
   "description": "",
-  "type": "module",
+  "type": "commonjs",
   "main": "index.js",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "test:coverage": "jest --coverage"
   },
   "keywords": [],
   "author": "",
@@ -26,9 +27,11 @@
     "randombytes": "^2.1.0",
     "rate-limit-redis": "^6.0.1",
     "redis": "^6.3.0",
+    "swagger-ui-express": "^5.0.1",
     "uuid": "^14.0.3",
     "winston": "^3.19.0",
-    "winston-daily-rotate-file": "^5.0.0"
+    "winston-daily-rotate-file": "^5.0.0",
+    "yaml": "^2.9.1"
   },
   "devDependencies": {
     "jest": "^30.5.2",

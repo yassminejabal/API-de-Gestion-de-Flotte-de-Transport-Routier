@@ -1,13 +1,15 @@
-import { S3Client } from '@aws-sdk/client-s3';
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '../../.env') }); // كيتأكد بلي .env تقرا
+const { S3Client } = require('@aws-sdk/client-s3');
 
-// s3client est un class pour la communication avec des servre de amazon comme minio
-export const s3 = new S3Client({
-    region: 'us-east-1',
-    // endpoint : servre de stokage
-    endpoint: 'http://localhost:9000',
+const s3Client = new S3Client({
+  region: process.env.AWS_REGION || 'us-east-1',
+  endpoint: process.env.MINIO_ENDPOINT || 'http://127.0.0.1:9000',
   forcePathStyle: true,
   credentials: {
-    accessKeyId: 'minioadmin',
-    secretAccessKey: 'minioadminpassword'
-  }
+    accessKeyId: process.env.MINIO_ACCESS_KEY || 'minioadmin',
+    secretAccessKey: process.env.MINIO_SECRET_KEY || 'minioadminpassword',
+  },
 });
+
+module.exports = s3Client;

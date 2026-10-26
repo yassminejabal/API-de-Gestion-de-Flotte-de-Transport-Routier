@@ -7,7 +7,7 @@ class AppError extends Error{
         this.statusCode = statusCode    
         // cette methode appel ternary operator
         // pour stricturer les error
-        this.status =` ${statusCode}`.startsWith('4') ? 'fail' : 'error';
+        this.status = `${statusCode}`.startsWith('4') ? 'fail' : 'error';
         // n'est pas un error mallee
         this.isOperationel = true;
         //this === error

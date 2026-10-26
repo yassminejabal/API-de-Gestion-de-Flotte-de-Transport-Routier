@@ -1,0 +1,1724 @@
+openapi: 3.0.3
+info:
+  title: API Gestion de Flotte de Transport Routier
+  description: |
+    Documentation OpenAPI de l'API backend de gestion de flotte de transport routier.
+    Les endpoints documentés correspondent aux routes réellement présentes dans l'application.
+  version: 2.0.0
+  contact:
+    name: Support technique
+servers:
+  - url: http://localhost:5000
+    description: Serveur de développement local
+
+tags:
+  - name: Authentification
+    description: Inscription, authentification et accès administrateur.
+  - name: Camions
+    description: Gestion des véhicules de la flotte.
+  - name: Remorques
+    description: Gestion des remorques.
+  - name: Pneus
+    description: Gestion des pneus et affectation sur camion.
+  - name: Trajets
+    description: Planification, suivi et ordre de mission des trajets.
+  - name: Chauffeurs
+    description: Gestion des comptes chauffeur et leur suspension.
+  - name: Maintenance
+    description: Alertes de maintenance de flotte.
+  - name: V2
+    description: Endpoints de version 2, notamment pour les ordres de mission.
+
+paths:
+  /api/auth/register:
+    post:
+      tags: [Authentification]
+      summary: Créer un compte utilisateur
+      description: Crée un compte utilisateur avec un rôle. Le mot de passe est haché automatiquement par le modèle Mongoose.
+      operationId: registerUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+            example:
+              nom: Dupont
+              email: admin@fleet.com
+              password: MotDePasse123!
+              role: ADMIN
+      responses:
+        '201':
+          description: Utilisateur créé avec succès.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthSuccessResponse'
+              example:
+                status: success
+                message: Utilisateur créé avec succès
+                token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                data:
+                  user:
+                    _id: 64d9b5d5ebfbe298f1a0a3f1
+                    nom: Dupont
+                    email: admin@fleet.com
+                    role: ADMIN
+                    isSuspended: false
+                    actif: true
+                    createdAt: '2025-01-10T09:30:00.000Z'
+                    updatedAt: '2025-01-10T09:30:00.000Z'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/auth/login:
+    post:
+      tags: [Authentification]
+      summary: Authentifier un utilisateur
+      description: Vérifie l'email et le mot de passe, puis retourne un JWT valide.
+      operationId: loginUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            example:
+              email: chauffeur@fleet.com
+              password: MotDePasse123!
+      responses:
+        '200':
+          description: Authentification réussie.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthSuccessResponse'
+              example:
+                status: success
+                message: Connexion réussie
+                token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                data:
+                  user:
+                    _id: 64d9b5d5ebfbe298f1a0a3f2
+                    nom: Martin
+                    prenom: Karim
+                    email: chauffeur@fleet.com
+                    role: CHAUFFEUR
+                    isSuspended: false
+                    actif: true
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/auth/Admin:
+    get:
+      tags: [Authentification]
+      summary: Vérifier l'accès administrateur
+      description: Endpoint protégé réservé aux administrateurs. Nécessite un JWT Bearer valide.
+      operationId: getAdminAccess
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Accès autorisé.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
+              example:
+                status: success
+                data:
+                  user:
+                    _id: 64d9b5d5ebfbe298f1a0a3f1
+                    nom: Dupont
+                    email: admin@fleet.com
+                    role: ADMIN
+                    isSuspended: false
+                    actif: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/camions:
+    post:
+      tags: [Camions]
+      summary: Créer un camion
+      description: Ajoute un camion à la flotte. Seuls les administrateurs peuvent effectuer cette action.
+      operationId: createCamion
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CamionInput'
+            example:
+              immatriculation: AB-123-CD
+              marque: Mercedes
+              modele: Actros
+              kilometrageActuel: 156200
+      responses:
+        '201':
+          description: Camion créé.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      camion:
+                        $ref: '#/components/schemas/Camion'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    get:
+      tags: [Camions]
+      summary: Lister les camions
+      description: Retourne la liste des camions non archivés.
+      operationId: getCamions
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Liste récupérée.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  resultats:
+                    type: integer
+                    example: 2
+                  data:
+                    type: object
+                    properties:
+                      camions:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Camion'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/camions/{id}:
+    put:
+      tags: [Camions]
+      summary: Modifier un camion
+      description: Met à jour les propriétés d'un camion existant.
+      operationId: updateCamion
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CamionInput'
+      responses:
+        '200':
+          description: Camion mis à jour.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      camion:
+                        $ref: '#/components/schemas/Camion'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags: [Camions]
+      summary: Archiver un camion
+      description: Marque un camion comme archivé sans le supprimer physiquement.
+      operationId: archiveCamion
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      responses:
+        '200':
+          description: Camion archivé.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Camion archivé avec succès
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/remorques:
+    post:
+      tags: [Remorques]
+      summary: Créer une remorque
+      description: Ajoute une remorque à la flotte. Action réservée aux administrateurs.
+      operationId: createRemorque
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RemorqueInput'
+            example:
+              immatriculation: RT-451-ZA
+              type: Semi-remorque
+              capaciteMaxKg: 24000
+              statut: DISPONIBLE
+      responses:
+        '201':
+          description: Remorque créée.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      remorque:
+                        $ref: '#/components/schemas/Remorque'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    get:
+      tags: [Remorques]
+      summary: Lister les remorques
+      operationId: getRemorques
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Liste des remorques non archivées.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  resultats:
+                    type: integer
+                  data:
+                    type: object
+                    properties:
+                      remorques:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Remorque'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/remorques/{id}:
+    put:
+      tags: [Remorques]
+      summary: Modifier une remorque
+      operationId: updateRemorque
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RemorqueInput'
+      responses:
+        '200':
+          description: Remorque mise à jour.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      remorque:
+                        $ref: '#/components/schemas/Remorque'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags: [Remorques]
+      summary: Archiver une remorque
+      operationId: archiveRemorque
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      responses:
+        '200':
+          description: Remorque archivée.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Remorque archivée avec succès
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/pneus:
+    post:
+      tags: [Pneus]
+      summary: Créer un pneu
+      description: Ajoute un pneu au parc de pneus. Action réservée à l'administrateur.
+      operationId: createPneu
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PneuInput'
+            example:
+              numeroSerie: PN-225-001
+              kilometrageActuel: 17500
+              seuilUsureKm: 40000
+              camion: 64d9b5d5ebfbe298f1a0a3f1
+      responses:
+        '201':
+          description: Pneu créé.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      pneu:
+                        $ref: '#/components/schemas/Pneu'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    get:
+      tags: [Pneus]
+      summary: Lister les pneus
+      operationId: getPneus
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Liste des pneus actifs.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  resultats:
+                    type: integer
+                  data:
+                    type: object
+                    properties:
+                      pneus:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Pneu'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/pneus/{id}/assigner:
+    put:
+      tags: [Pneus]
+      summary: Assigner un pneu à un camion
+      description: Affecte un pneu à un camion à une position donnée. Une position déjà occupée sur le camion déclenche un conflit.
+      operationId: assignPneuToTruck
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [camionId, position]
+              properties:
+                camionId:
+                  type: string
+                  example: 64d9b5d5ebfbe298f1a0a3f1
+                position:
+                  type: string
+                  example: AVANT_GAUCHE
+      responses:
+        '200':
+          description: Pneu assigné.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      pneu:
+                        $ref: '#/components/schemas/Pneu'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/pneus/{id}:
+    put:
+      tags: [Pneus]
+      summary: Modifier un pneu
+      operationId: updatePneu
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PneuInput'
+      responses:
+        '200':
+          description: Pneu mis à jour.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      pneu:
+                        $ref: '#/components/schemas/Pneu'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags: [Pneus]
+      summary: Archiver un pneu
+      operationId: archivePneu
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      responses:
+        '200':
+          description: Pneu archivé.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Pneu archivé avec succès
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/chauffeurs:
+    post:
+      tags: [Chauffeurs]
+      summary: Créer un chauffeur
+      description: Crée un compte chauffeur avec un mot de passe temporaire envoyé par email.
+      operationId: createDriver
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChauffeurInput'
+            example:
+              nom: Martin
+              prenom: Karim
+              email: chauffeur@fleet.com
+              telephone: '+212600000000'
+      responses:
+        '201':
+          description: Chauffeur créé.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      chauffeur:
+                        $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    get:
+      tags: [Chauffeurs]
+      summary: Lister les chauffeurs actifs
+      operationId: getDrivers
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Liste des chauffeurs actifs.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  resultats:
+                    type: integer
+                  data:
+                    type: object
+                    properties:
+                      chauffeurs:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/chauffeurs/{id}/suspendre:
+    patch:
+      tags: [Chauffeurs]
+      summary: Basculer la suspension d'un chauffeur
+      description: Inverse l'état de suspension d'un chauffeur actif.
+      operationId: toggleDriverSuspension
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      responses:
+        '200':
+          description: État de suspension modifié.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      chauffeur:
+                        $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/chauffeurs/{id}:
+    put:
+      tags: [Chauffeurs]
+      summary: Modifier un chauffeur
+      operationId: updateDriver
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChauffeurInput'
+      responses:
+        '200':
+          description: Chauffeur mis à jour.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags: [Chauffeurs]
+      summary: Archiver un chauffeur
+      operationId: archiveDriver
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      responses:
+        '200':
+          description: Chauffeur archivé.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: Chauffeur archivé avec succès
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/trajets/mes-trajets:
+    get:
+      tags: [Trajets]
+      summary: Récupérer les trajets du chauffeur connecté
+      description: Retourne les trajets assignés au chauffeur actuellement authentifié.
+      operationId: getMyTrips
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Trajets du chauffeur.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  resultats:
+                    type: integer
+                  data:
+                    type: object
+                    properties:
+                      trajets:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Trajet'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/trajets:
+    post:
+      tags: [Trajets]
+      summary: Créer un trajet
+      description: Planifie un trajet et vérifie la disponibilité du camion, remorque et chauffeur avant création.
+      operationId: createTrip
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TrajetInput'
+            example:
+              pointDepart: Casablanca
+              pointArrivee: Rabat
+              marchandise: Produits alimentaires
+              dateDepartPrevue: '2025-02-10T08:00:00.000Z'
+              dateArriveePrevue: '2025-02-10T18:00:00.000Z'
+              chauffeur: 64d9b5d5ebfbe298f1a0a3f2
+              camion: 64d9b5d5ebfbe298f1a0a3f3
+              remorque: 64d9b5d5ebfbe298f1a0a3f4
+      responses:
+        '201':
+          description: Trajet planifié.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      trajet:
+                        $ref: '#/components/schemas/Trajet'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    get:
+      tags: [Trajets]
+      summary: Lister les trajets
+      description: Retourne les trajets actifs pour l'administration.
+      operationId: getTrips
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Liste des trajets.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  resultats:
+                    type: integer
+                  data:
+                    type: object
+                    properties:
+                      trajets:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Trajet'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/trajets/{id}:
+    get:
+      tags: [Trajets]
+      summary: Détail d'un trajet
+      description: Retourne un trajet par son identifiant. Un chauffeur ne peut consulter que son propre trajet.
+      operationId: getTripById
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      responses:
+        '200':
+          description: Trajet trouvé.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      trajet:
+                        $ref: '#/components/schemas/Trajet'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/trajets/{id}/demarrer:
+    patch:
+      tags: [Trajets]
+      summary: Démarrer un trajet
+      description: Met le trajet en cours et enregistre le kilométrage de départ.
+      operationId: startTrip
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [kilometrageDepart]
+              properties:
+                kilometrageDepart:
+                  type: number
+                  example: 24580
+      responses:
+        '200':
+          description: Trajet démarré.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      trajet:
+                        $ref: '#/components/schemas/Trajet'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/trajets/{id}/terminer:
+    patch:
+      tags: [Trajets]
+      summary: Terminer un trajet
+      description: Ferme le trajet, calcule le carburant consommé, met à jour le kilométrage du camion et déclenche les alertes éventuelles.
+      operationId: endTrip
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [kilometrageArrivee, volumeGasoilConsommeLitres]
+              properties:
+                kilometrageArrivee:
+                  type: number
+                  example: 25050
+                volumeGasoilConsommeLitres:
+                  type: number
+                  example: 48
+                remarquesChauffeur:
+                  type: string
+                  example: Trajet effectué sans incident.
+      responses:
+        '200':
+          description: Trajet terminé.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      trajet:
+                        $ref: '#/components/schemas/Trajet'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/trajets/{id}/ordre-mission:
+    get:
+      tags: [Trajets]
+      summary: Télécharger l'ordre de mission PDF
+      description: Génère ou récupère le PDF de l'ordre de mission associé au trajet et le renvoie en réponse binaire.
+      operationId: getMissionOrderPdf
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      responses:
+        '200':
+          description: Fichier PDF de l'ordre de mission.
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/maintenance/alertes:
+    get:
+      tags: [Maintenance]
+      summary: Récupérer les alertes de maintenance
+      description: Retourne les alertes des camions et des pneus actifs.
+      operationId: getMaintenanceAlerts
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Alertes de maintenance.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      totalAlertes:
+                        type: integer
+                        example: 3
+                      camions:
+                        type: object
+                        properties:
+                          total:
+                            type: integer
+                          liste:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Camion'
+                      pneus:
+                        type: object
+                        properties:
+                          total:
+                            type: integer
+                          liste:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Pneu'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v2/trips/{id}/mission-order-url:
+    get:
+      tags: [V2]
+      summary: Générer l'URL signée de l'ordre de mission
+      description: Vérifie l'accès (admin ou chauffeur assigné), génère le document PDF si besoin, puis retourne une URL pré-signée de téléchargement.
+      operationId: getMissionOrderSignedUrl
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ResourceId'
+      responses:
+        '200':
+          description: URL signée générée.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 'Presigned URL générée avec succès (expiration : 15 minutes)'
+                  expiresInSeconds:
+                    type: integer
+                    example: 900
+                  s3Key:
+                    type: string
+                    example: orders/2025/TRP-2025-64d9b5d5ebfbe298f1a0a3f1.pdf
+                  downloadUrl:
+                    type: string
+                    format: uri
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    ResourceId:
+      name: id
+      in: path
+      required: true
+      description: Identifiant MongoDB de la ressource.
+      schema:
+        type: string
+        example: 64d9b5d5ebfbe298f1a0a3f1
+
+  responses:
+    BadRequest:
+      description: Requête invalide.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            status: fail
+            message: "Tous les champs sont obligatoires"
+    Unauthorized:
+      description: Authentification manquante ou invalide.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            status: fail
+            message: Token invalide ou expiré.
+    Forbidden:
+      description: Accès refusé.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            status: fail
+            message: Accès refusé. Cette action est réservée à l'administrateur.
+    NotFound:
+      description: Ressource introuvable.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            status: fail
+            message: Trajet introuvable
+    Conflict:
+      description: Conflit de données.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            status: fail
+            message: Un camion avec cette immatriculation existe déjà
+    InternalServerError:
+      description: Erreur interne du serveur.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            status: error
+            message: Erreur serveur
+
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: fail
+        message:
+          type: string
+          example: Erreur serveur
+
+    User:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 64d9b5d5ebfbe298f1a0a3f1
+        prenom:
+          type: string
+          nullable: true
+          example: Karim
+        telephone:
+          type: string
+          nullable: true
+          example: '+212600000000'
+        nom:
+          type: string
+          example: Martin
+        email:
+          type: string
+          format: email
+          example: chauffeur@fleet.com
+        role:
+          type: string
+          enum: [ADMIN, CHAUFFEUR]
+          example: CHAUFFEUR
+        isSuspended:
+          type: boolean
+          example: false
+        actif:
+          type: boolean
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    RegisterRequest:
+      type: object
+      required: [nom, email, password]
+      properties:
+        nom:
+          type: string
+          example: Dupont
+        prenom:
+          type: string
+          nullable: true
+          example: Antoine
+        email:
+          type: string
+          format: email
+          example: admin@fleet.com
+        password:
+          type: string
+          format: password
+          example: MotDePasse123!
+        role:
+          type: string
+          enum: [ADMIN, CHAUFFEUR]
+          default: CHAUFFEUR
+          example: ADMIN
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          example: chauffeur@fleet.com
+        password:
+          type: string
+          format: password
+          example: MotDePasse123!
+
+    AuthSuccessResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        message:
+          type: string
+          example: Connexion réussie
+        token:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        data:
+          type: object
+          properties:
+            user:
+              $ref: '#/components/schemas/User'
+
+    Camion:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 64d9b5d5ebfbe298f1a0a3f3
+        immatriculation:
+          type: string
+          example: AB-123-CD
+        marque:
+          type: string
+          example: Mercedes
+        modele:
+          type: string
+          example: Actros
+        kilometrageActuel:
+          type: number
+          minimum: 0
+          example: 156200
+        statut:
+          type: string
+          enum: [DISPONIBLE, EN_TRAJET, EN_MAINTENANCE]
+          example: DISPONIBLE
+        alerteMaintenance:
+          type: boolean
+          default: false
+          example: false
+        pneus:
+          type: array
+          items:
+            type: string
+          example: [64d9b5d5ebfbe298f1a0a3f5]
+        estArchive:
+          type: boolean
+          default: false
+          example: false
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CamionInput:
+      type: object
+      required: [immatriculation, marque, modele]
+      properties:
+        immatriculation:
+          type: string
+          example: AB-123-CD
+        marque:
+          type: string
+          example: Mercedes
+        modele:
+          type: string
+          example: Actros
+        kilometrageActuel:
+          type: number
+          minimum: 0
+          example: 156200
+        statut:
+          type: string
+          enum: [DISPONIBLE, EN_TRAJET, EN_MAINTENANCE]
+          default: DISPONIBLE
+        alerteMaintenance:
+          type: boolean
+          default: false
+
+    Remorque:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 64d9b5d5ebfbe298f1a0a3f4
+        immatriculation:
+          type: string
+          example: RT-451-ZA
+        type:
+          type: string
+          example: Semi-remorque
+        capaciteMaxKg:
+          type: number
+          minimum: 0
+          example: 24000
+        statut:
+          type: string
+          enum: [DISPONIBLE, EN_TRAJET, EN_MAINTENANCE]
+          example: DISPONIBLE
+        alerteMaintenance:
+          type: boolean
+          default: false
+          example: false
+        estArchive:
+          type: boolean
+          default: false
+          example: false
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    RemorqueInput:
+      type: object
+      required: [immatriculation, type, capaciteMaxKg]
+      properties:
+        immatriculation:
+          type: string
+          example: RT-451-ZA
+        type:
+          type: string
+          example: Semi-remorque
+        capaciteMaxKg:
+          type: number
+          minimum: 0
+          example: 24000
+        statut:
+          type: string
+          enum: [DISPONIBLE, EN_TRAJET, EN_MAINTENANCE]
+          default: DISPONIBLE
+        alerteMaintenance:
+          type: boolean
+          default: false
+
+    Pneu:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 64d9b5d5ebfbe298f1a0a3f5
+        numeroSerie:
+          type: string
+          example: PN-225-001
+        position:
+          type: string
+          nullable: true
+          example: AVANT_GAUCHE
+        kilometrageActuel:
+          type: number
+          minimum: 0
+          example: 17500
+        seuilUsureKm:
+          type: number
+          minimum: 0
+          example: 40000
+        alerteRemplacement:
+          type: boolean
+          default: false
+          example: false
+        camion:
+          type: string
+          nullable: true
+          example: 64d9b5d5ebfbe298f1a0a3f3
+        estArchive:
+          type: boolean
+          default: false
+          example: false
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    PneuInput:
+      type: object
+      required: [numeroSerie, seuilUsureKm]
+      properties:
+        numeroSerie:
+          type: string
+          example: PN-225-001
+        position:
+          type: string
+          nullable: true
+          example: AVANT_GAUCHE
+        kilometrageActuel:
+          type: number
+          minimum: 0
+          example: 17500
+        seuilUsureKm:
+          type: number
+          minimum: 0
+          example: 40000
+        alerteRemplacement:
+          type: boolean
+          default: false
+        camion:
+          type: string
+          nullable: true
+          example: 64d9b5d5ebfbe298f1a0a3f3
+
+    ChauffeurInput:
+      type: object
+      properties:
+        nom:
+          type: string
+          example: Martin
+        prenom:
+          type: string
+          example: Karim
+        email:
+          type: string
+          format: email
+          example: chauffeur@fleet.com
+        telephone:
+          type: string
+          example: '+212600000000'
+
+    Trajet:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 64d9b5d5ebfbe298f1a0a3f6
+        pointDepart:
+          type: string
+          example: Casablanca
+        pointArrivee:
+          type: string
+          example: Rabat
+        marchandise:
+          type: string
+          example: Produits alimentaires
+        dateDepartPrevue:
+          type: string
+          format: date-time
+        dateArriveePrevue:
+          type: string
+          format: date-time
+        chauffeur:
+          oneOf:
+            - $ref: '#/components/schemas/User'
+            - type: string
+              example: 64d9b5d5ebfbe298f1a0a3f2
+        camion:
+          oneOf:
+            - $ref: '#/components/schemas/Camion'
+            - type: string
+              example: 64d9b5d5ebfbe298f1a0a3f3
+        remorque:
+          oneOf:
+            - $ref: '#/components/schemas/Remorque'
+            - type: string
+              example: 64d9b5d5ebfbe298f1a0a3f4
+        statut:
+          type: string
+          enum: [A_FAIRE, EN_COURS, TERMINE, ANNULE]
+          example: A_FAIRE
+        kilometrageDepart:
+          type: number
+          nullable: true
+          example: 24580
+        kilometrageArrivee:
+          type: number
+          nullable: true
+          example: 25050
+        volumeGasoilConsommeLitres:
+          type: number
+          nullable: true
+          example: 48
+        coutCarburant:
+          type: number
+          nullable: true
+          example: 624
+        remarquesChauffeur:
+          type: string
+          example: Trajet effectué sans incident.
+        estArchive:
+          type: boolean
+          default: false
+          example: false
+        missionOrderDocument:
+          type: object
+          nullable: true
+          properties:
+            bucket:
+              type: string
+              example: fleettrack-documents
+            s3Key:
+              type: string
+              nullable: true
+              example: orders/2025/TRP-2025-64d9b5d5ebfbe298f1a0a3f6.pdf
+            sizeBytes:
+              type: integer
+              example: 24789
+            generatedAt:
+              type: string
+              format: date-time
+              nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    TrajetInput:
+      type: object
+      required: [pointDepart, pointArrivee, marchandise, dateDepartPrevue, dateArriveePrevue, chauffeur, camion, remorque]
+      properties:
+        pointDepart:
+          type: string
+          example: Casablanca
+        pointArrivee:
+          type: string
+          example: Rabat
+        marchandise:
+          type: string
+          example: Produits alimentaires
+        dateDepartPrevue:
+          type: string
+          format: date-time
+        dateArriveePrevue:
+          type: string
+          format: date-time
+        chauffeur:
+          type: string
+          example: 64d9b5d5ebfbe298f1a0a3f2
+        camion:
+          type: string
+          example: 64d9b5d5ebfbe298f1a0a3f3
+        remorque:
+          type: string
+          example: 64d9b5d5ebfbe298f1a0a3f4
+        statut:
+          type: string
+          enum: [A_FAIRE, EN_COURS, TERMINE, ANNULE]
+          default: A_FAIRE
+
+security:
+  - bearerAuth: []

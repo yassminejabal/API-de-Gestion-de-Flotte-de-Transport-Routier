@@ -11,6 +11,7 @@ function restrictToAdmin(req, res, next) {
 }
 async function protect(req, res, next) {
   try {
+    let token;
     if (
       req.headers.authorization &&
       req.headers.authorization.startsWith("Bearer")) {
