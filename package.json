@@ -1,6 +1,6 @@
 {
   "name": "gestion_de_flotte_de_transport_routier",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "",
   "type": "commonjs",
   "main": "index.js",

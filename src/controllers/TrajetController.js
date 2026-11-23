@@ -48,9 +48,14 @@ async getMissionOrderPresignedUrl(req, res, next) {
       }
 
       // 2. Génération Lazy (On-demand) et téléversement vers MinIO si inexistant
-      if (!trajet.missionOrderDocument || !trajet.missionOrderDocument.s3Key) {
+      const templateVersion = pdfService.templateVersion;
+      if (
+        !trajet.missionOrderDocument ||
+        !trajet.missionOrderDocument.s3Key ||
+        trajet.missionOrderDocument.templateVersion !== templateVersion
+      ) {
         const currentYear = new Date().getFullYear();
-        const s3Key = `orders/${currentYear}/TRP-${currentYear}-${trajet._id}.pdf`;
+        const s3Key = `orders/${currentYear}/TRP-${currentYear}-${trajet._id}-v${templateVersion}.pdf`;
         // Génération du Buffer PDF
         const pdfBuffer = await genererPdfBuffer(trajet, pdfService);
         const metadata = await storageService.uploadMissionOrder(pdfBuffer, s3Key);
@@ -59,6 +64,7 @@ async getMissionOrderPresignedUrl(req, res, next) {
           bucket: metadata.bucket || 'fleettrack-documents',
           s3Key: metadata.s3Key || s3Key,
           sizeBytes: metadata.sizeBytes || pdfBuffer.length,
+          templateVersion,
           generatedAt: new Date()
         };
         await trajet.save();

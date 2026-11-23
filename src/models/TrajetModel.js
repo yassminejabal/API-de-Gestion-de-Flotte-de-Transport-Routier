@@ -84,6 +84,10 @@ const trajetSchema = new mongoose.Schema({
         type: Number,
         default: 0,
       },
+      templateVersion: {
+        type: String,
+        default: null,
+      },
       generatedAt: {
         type: Date,
         default: null,

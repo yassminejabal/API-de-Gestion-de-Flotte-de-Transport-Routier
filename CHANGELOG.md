@@ -2,6 +2,13 @@
 
 This changelog tracks the FleetTrackPRO backend API only. The React frontend is maintained separately and is not included in backend releases.
 
+## [2.0.2] - Prepared, not yet published
+
+### Fixed
+
+- Regenerate stored mission-order PDFs when the template version changes, instead of returning an older MinIO document.
+- Store generated PDFs under a template-versioned object key and persist the template version with the trip.
+
 ## [2.0.1] - Prepared, not yet published
 
 ### Changed

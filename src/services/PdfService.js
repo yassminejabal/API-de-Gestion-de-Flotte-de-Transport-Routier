@@ -44,6 +44,10 @@ function formatDate(value) {
 }
 
 class PdfService {
+  get templateVersion() {
+    return "2.0.1";
+  }
+
   genererOrdreMission(trajet, dataCallback, endCallback) {
     const doc = new PDFDocument({
       size: "A4",
