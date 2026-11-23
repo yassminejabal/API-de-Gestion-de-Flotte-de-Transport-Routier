@@ -2,6 +2,14 @@
 
 This changelog tracks the FleetTrackPRO backend API only. The React frontend is maintained separately and is not included in backend releases.
 
+## [2.0.1] - Prepared, not yet published
+
+### Changed
+
+- Redesigned generated mission orders with FleetTrackPRO colors, clear section hierarchy, and tables for mission details, driver, vehicles, and itinerary.
+- Added separate signature and validation fields and clearer handling for missing values and dates.
+- Included the assigned driver's phone number in mission order data when available.
+
 ## [2.0.0] - Prepared, not yet published
 
 ### Added

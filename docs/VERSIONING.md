@@ -21,4 +21,4 @@ The root `package.json` and `package-lock.json` must carry the same backend vers
 5. Push the release branch and tag with `git push origin <branch> --follow-tags`.
 6. On GitHub, create a Release from that tag and use the matching changelog entry as the release notes.
 
-The current baseline is `v1.0.0`. The backend declares `2.0.0`; its release tag and GitHub Release are pending publication.
+The stable baseline is `v1.0.0`. Backend tag `v2.0.0` has been pushed to GitHub. The current backend manifest is being prepared for `2.0.1`; create its tag and GitHub Release after the patch is reviewed and verified.

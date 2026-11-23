@@ -24,6 +24,7 @@ describe('Suite de tests unitaires - PdfService', () => {
           expect(chunks.length).toBeGreaterThan(0);
           const buffer = Buffer.concat(chunks);
           expect(buffer.toString('utf8', 0, 4)).toBe('%PDF');
+          expect(buffer.toString('latin1')).toMatch(/\/Count\s+1\b/);
           done();
         } catch (err) {
           done(err);

@@ -22,7 +22,7 @@ async getMissionOrderPresignedUrl(req, res, next) {
     try {
       const { id } = req.params;
       const trajet = await Trajet.findOne({ _id: id, estArchive: false })
-        .populate('chauffeur', 'nom prenom email')
+        .populate('chauffeur', 'nom prenom email telephone')
         .populate('camion', 'immatriculation marque modele')
         .populate('remorque', 'immatriculation type');
 
@@ -177,7 +177,7 @@ async terminerTrajet(req, res, next) {
  async genererOrdreMission(req, res, next) {
         try {
             const trajet = await Trajet.findOne({ _id: req.params.id, estArchive: false })
-                .populate('chauffeur', 'nom prenom email')
+                .populate('chauffeur', 'nom prenom email telephone')
                 .populate('camion', 'immatriculation marque modele')
                 .populate('remorque', 'immatriculation type');
 
