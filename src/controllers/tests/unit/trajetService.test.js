@@ -133,7 +133,7 @@ describe('Suite de tests unitaires - TrajetService', () => {
       User.findOne.mockResolvedValueOnce({
         _id: 'ch1',
         role: 'CHAUFFEUR',
-        estSuspendu: true,
+        isSuspended: true,
       });
 
       await expect(
@@ -146,7 +146,7 @@ describe('Suite de tests unitaires - TrajetService', () => {
       Trajet.findOne.mockResolvedValueOnce(null);
       Camion.findOne.mockResolvedValueOnce({ _id: 'c1', alerteMaintenance: false, statut: 'DISPONIBLE' });
       Remorque.findOne.mockResolvedValueOnce({ _id: 'r1', alerteMaintenance: false, statut: 'DISPONIBLE' });
-      User.findOne.mockResolvedValueOnce({ _id: 'ch1', role: 'CHAUFFEUR', estSuspendu: false });
+      User.findOne.mockResolvedValueOnce({ _id: 'ch1', role: 'CHAUFFEUR', isSuspended: false });
       Trajet.findOne.mockResolvedValueOnce({ _id: 'missionActiveChauffeur' });
 
       await expect(
@@ -159,7 +159,7 @@ describe('Suite de tests unitaires - TrajetService', () => {
       Trajet.findOne.mockResolvedValueOnce(null);
       const mockCamion = { _id: 'c1', alerteMaintenance: false, statut: 'DISPONIBLE' };
       const mockRemorque = { _id: 'r1', alerteMaintenance: false, statut: 'DISPONIBLE' };
-      const mockChauffeur = { _id: 'ch1', role: 'CHAUFFEUR', estSuspendu: false };
+      const mockChauffeur = { _id: 'ch1', role: 'CHAUFFEUR', isSuspended: false };
 
       Camion.findOne.mockResolvedValueOnce(mockCamion);
       Remorque.findOne.mockResolvedValueOnce(mockRemorque);

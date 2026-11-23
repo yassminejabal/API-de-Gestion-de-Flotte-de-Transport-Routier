@@ -56,6 +56,12 @@ class AuthService {
       throw error;
     }
 
+    if (user.isSuspended) {
+      const error = new Error('Ce compte est suspendu');
+      error.statusCode = 403;
+      throw error;
+    }
+
 const token = this.genererToken(user._id);
       user.password = undefined;
 

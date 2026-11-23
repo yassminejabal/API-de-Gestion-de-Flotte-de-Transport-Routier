@@ -158,5 +158,22 @@ describe('Suite de tests unitaires - AuthService', () => {
       expect(resultat.user.password).toBeUndefined();
       expect(resultat.user._id).toBe('u1');
     });
+
+    it('devrait refuser l\'authentification d\'un compte suspendu sans créer de token', async () => {
+      const mockUser = {
+        _id: 'u2',
+        email: 'suspendu@example.com',
+        password: 'hashedPassword',
+        isSuspended: true,
+      };
+      User.findOne.mockReturnValue({ select: jest.fn().mockResolvedValue(mockUser) });
+      bcrypt.compare.mockResolvedValueOnce(true);
+
+      await expect(authService.login('suspendu@example.com', 'bonPass')).rejects.toMatchObject({
+        message: 'Ce compte est suspendu',
+        statusCode: 403,
+      });
+      expect(jwt.sign).not.toHaveBeenCalled();
+    });
   });
 });

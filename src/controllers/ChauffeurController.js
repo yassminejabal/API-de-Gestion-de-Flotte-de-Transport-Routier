@@ -28,7 +28,7 @@ class ChauffeurController{
   async basculerSuspension(req, res, next) {
     try {
       const chauffeur = await chauffeurService.basculerSuspensionChauffeur(req.params.id);
-      const action = chauffeur.estSuspendu;
+      const action = chauffeur.isSuspended ? "suspendu" : "réactivé";
       res.status(200).json({
         status: "success",
         message: `Compte chauffeur ${action} avec succès`,

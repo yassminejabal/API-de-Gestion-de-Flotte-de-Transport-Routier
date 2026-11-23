@@ -1,6 +1,6 @@
 const rateLimit = require('express-rate-limit');
 const { RedisStore } = require('rate-limit-redis');
-const redisClient = require('../config/redis');
+const { redisClient, connectRedis } = require('../config/redis');
 
 // Rate limiter l-Auth: 10 requêtes / 15 min
 const authLimiter = rateLimit({
@@ -9,7 +9,10 @@ const authLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   store: new RedisStore({
-    sendCommand: (...args) => redisClient.sendCommand(args),
+    sendCommand: async (...args) => {
+      await connectRedis();
+      return redisClient.sendCommand(args);
+    },
     prefix: 'rl:auth:'
   }),
   message: {

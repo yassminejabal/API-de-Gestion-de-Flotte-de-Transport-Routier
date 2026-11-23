@@ -21,7 +21,7 @@ class ChauffeurService {
       telephone,
       password: motDePasseTemporaire,
       role: "CHAUFFEUR",
-      estSuspendu: false,
+      isSuspended: false,
       estArchive: false,
     });
     const messageHtml = `
@@ -71,7 +71,7 @@ class ChauffeurService {
       throw new NotFoundError("Chauffeur introuvable ou archivé");
     }
 
-    chauffeur.estSuspendu = !chauffeur.estSuspendu;
+    chauffeur.isSuspended = !chauffeur.isSuspended;
     await chauffeur.save();
     chauffeur.password = undefined;
     return chauffeur;

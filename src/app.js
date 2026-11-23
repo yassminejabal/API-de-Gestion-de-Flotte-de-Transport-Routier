@@ -4,15 +4,16 @@ const path = require("path");
 const YAML = require("yaml");
 const swaggerUi = require("swagger-ui-express");
 const app = express();
+const cors = require('cors');
 
+app.use(cors());
 app.use(express.json());
-
+app.use(express.json());
 const openApiDocument = YAML.parse(
   fs.readFileSync(path.join(__dirname, "..", "openapi.yaml"), "utf8"),
 );
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(openApiDocument));
 
-// 1. استيراد الـ Rate Limiter ديال Redis
 const { authLimiter } = require("./middlewares/rateLimiter");
 
 const authRoutes = require("../src/routes/auth/routes");
@@ -23,12 +24,10 @@ const trajetRoutes = require("../src/routes/trajetRoutes");
 const chauffeurRoutes = require("../src/routes/chauffeurRoutes");
 const errorHandler = require("../src/middlewares/error.middleware");
 const maintenanceRoutes = require('./routes/maintenanceRoutes.js');
-
 const tripRoutesV2 = require("./routes/tripRoutesV2");
 const analyticsRoutes = require("./routes/analyticsRoutes");
 app.use("/api/auth", authLimiter, authRoutes);
 
-// Routes v1 existantes
 app.use("/api/remorques", remorqueRoutes);
 app.use("/api/camions", camionRoutes);
 app.use("/api/pneus", pneuRoutes);
@@ -47,4 +46,4 @@ app.use("/api/v2/trips", tripRoutesV2);
 
 app.use(errorHandler);
 
-module.exports = app;
+module.exports = app; 

@@ -35,7 +35,7 @@ describe('Suite de tests unitaires - ChauffeurService', () => {
         email: 'karim@example.com',
         telephone: '0612345678',
         role: 'CHAUFFEUR',
-        estSuspendu: false,
+        isSuspended: false,
         estArchive: false,
         password: 'temporaryPassword123!',
       };
@@ -136,7 +136,7 @@ describe('Suite de tests unitaires - ChauffeurService', () => {
       const mockChauffeur = {
         _id: 'ch1',
         nom: 'Alami',
-        estSuspendu: false,
+        isSuspended: false,
         password: 'secret',
         save: jest.fn().mockResolvedValue(true),
       };
@@ -148,7 +148,7 @@ describe('Suite de tests unitaires - ChauffeurService', () => {
 
       const res = await chauffeurService.basculerSuspensionChauffeur('ch1');
 
-      expect(mockChauffeur.estSuspendu).toBe(true);
+      expect(mockChauffeur.isSuspended).toBe(true);
       expect(mockChauffeur.save).toHaveBeenCalled();
       expect(res.password).toBeUndefined();
     });

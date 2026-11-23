@@ -22,7 +22,7 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
       required: [true, "Le mot de passe est obligatoire"],
-      select: false,
+      select: false,  
     },
     role: {
       type: String,

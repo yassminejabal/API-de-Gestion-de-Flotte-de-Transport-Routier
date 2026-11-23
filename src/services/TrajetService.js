@@ -78,7 +78,7 @@
           "L'utilisateur assigné doit avoir le rôle CHAUFFEUR",
         );
       }
-      if (chauffeur.estSuspendu) {
+      if (chauffeur.isSuspended) {
         throw new ConflictError("Le compte de ce chauffeur est suspendu");
       }
 

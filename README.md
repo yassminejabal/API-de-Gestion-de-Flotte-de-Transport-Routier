@@ -11,6 +11,14 @@ API REST pour gérer une flotte de transport routier : véhicules, trajets, pers
 - Routes protégées et contrôle des accès administrateur
 - Architecture séparant routes, contrôleurs, services, modèles et middlewares
 
+## Documentation du backend
+
+Le guide détaillé de l'architecture, de la configuration, des endpoints et des flux métier se trouve dans [docs/BACKEND.md](docs/BACKEND.md). La référence OpenAPI est également disponible dans [openapi.yaml](openapi.yaml) et via `/api-docs` lorsque le serveur est lancé.
+
+## Versionnement du backend
+
+Le backend suit Semantic Versioning indépendamment de l'interface React. Consultez [CHANGELOG.md](CHANGELOG.md) pour les versions et [docs/VERSIONING.md](docs/VERSIONING.md) pour la procédure de tag et de release GitHub.
+
 ## Technologies
 
 - Node.js et Express
